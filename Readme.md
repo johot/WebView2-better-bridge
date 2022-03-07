@@ -5,7 +5,13 @@ There currently is no NuGet package, instead copy the `BridgeHelperBase.cs` and 
 
 ## Usage
 
-### Sync C# methods
+## Initialize bridge
+* Create a class that contains all the methods you can call from JS and inherit from `BridgeHelperBase`
+* Register it by calling: `webView2.CoreWebView2.AddHostObjectToScript("bridge", new SampleBridge(webView2))`
+
+*See sample project for more details.*
+
+### Calling sync C# methods
 
 ```cs
 // C#
@@ -34,7 +40,7 @@ const result = await bridge.runFunction("helloWorld", [
 ]);
 ```
 
-#### Async C# methods
+#### Calling async C# methods
 
 ```cs
 // C#
