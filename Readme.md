@@ -36,7 +36,7 @@ const result = await bridge.runFunction("helloWorld", [
 ```cs
 // C#
 
-// Note: Always add an ending parameter called "callId" for all async methods, you don't have to set this value yourself
+// Note: Always add an ending parameter called "callId" for all async methods, you don't have to set this value yourself from JS
 public async Task helloWorldAsync(string message, string personJson, string callId)
 {
     // Converts complex objects from string->object
