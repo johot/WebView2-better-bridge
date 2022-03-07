@@ -1,5 +1,8 @@
 # WebView2 Bridge Helper
 
+## Installation
+There currently is no NuGet package, instead copy the `BridgeHelperBase.cs` and `bridge.ts` files to your own project.
+
 ## Usage
 
 ### Sync C# methods
