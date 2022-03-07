@@ -35,6 +35,8 @@ const result = await bridge.runFunction("helloWorld", [
 
 ```cs
 // C#
+
+// Note: Always add an ending parameter called "callId" for all async methods, you don't have to set this value yourself
 public async Task helloWorldAsync(string message, string personJson, string callId)
 {
     // Converts complex objects from string->object
@@ -50,9 +52,9 @@ public async Task helloWorldAsync(string message, string personJson, string call
 }
 ```
 
-> **Why no return value?** In the async sample we don't have to return a value. The reason for this is that a return value from an async method in C# will always be null, that is why we need to post a message back instead using the `ResultAsync` utility method.
+> **Why no return value?** In the async sample we don't have to return a value. The reason for this is that a return value from an async method over the WebView2 bridge will always be null, that is why we need to post a message back instead by using the `ResultAsync` utility method.
 
-> **What is `callId`**? Since we are sending the return value in the async case back as a message we need to match the call and the result using a unique id. If we didn't do this we could end up picking up the result of a different call when waiting for our promise to resolve on the JavaScript side.
+> **What is `callId`**? Since we are sending the return value in the async case back as a message we need to match the original call (from JS) and the return message result using a unique id. If we didn't do this we could end up picking up the result of a different call when waiting for our promise to resolve on the JavaScript side.
 
 ```tsx
 // TypeScript
