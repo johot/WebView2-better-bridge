@@ -1,0 +1,97 @@
+﻿using Microsoft.Web.WebView2.WinForms;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace WebView2BridgeHelper.Old
+{
+    public class Person2
+    {
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
+        public List<string> Messages { get; set; } = new List<string>();
+    }
+
+    public class SampleBridge : BridgeHelperBase
+    {
+        public SampleBridge(WebView2 webView2) : base(webView2)
+        {
+        }
+
+        public async Task<string> runFunction(string fnName, string argsJson, string callId)
+        {
+            // Find function
+            var stringArray = JsonConvert.DeserializeObject<string[]>(argsJson);
+
+            var method = GetType().GetMethod(fnName);
+            var pars = GetType().GetMethod(fnName).GetParameters();
+
+            List<object> typedArgs = new List<object>();
+            int i = 0;
+
+            foreach (var jsonOrString in stringArray)
+            {
+                var typedObj = JsonConvert.DeserializeObject(jsonOrString, pars[i].ParameterType);
+                i++;
+                typedArgs.Add(typedObj);
+            }
+
+            var resultTyped = method.Invoke(this, typedArgs.ToArray());
+
+            var resultTypedTask = resultTyped as Task;
+
+            // Was the method called async?
+            if (resultTypedTask == null)
+            {
+                // Regular method
+                var resultJson = JsonConvert.SerializeObject(resultTyped);
+                return resultJson;
+            }
+            else
+            {
+                await resultTypedTask;
+                var taskResult = (object)((dynamic)resultTypedTask).Result;
+                ResultAsync(taskResult, callId);
+                return "";
+            }
+
+
+            //            var resultJson = JsonConvert.SerializeObject(resultTyped);
+
+            //return resultJson;
+        }
+
+        public async Task<Person2> test(string a, Person2 b)
+        {
+            //await Task.Delay(3000);
+
+            return new Person2() { Name = "Selma" };
+        }
+
+        public string helloWorld(string message, string personJson)
+        {
+            var person = ParseArg<Person>(personJson);
+
+            person.Messages.Add(message);
+
+            return Result(person);
+        }
+
+        public async Task helloWorldAsync(string message, string personJson, string callId)
+        {
+            var person = ParseArg<Person>(personJson);
+
+            person.Messages.Add(message);
+
+            await Task.Delay(1000);
+
+            ResultAsync(person, callId);
+        }
+    }
+}

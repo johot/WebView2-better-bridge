@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebView2BridgeHelper
+namespace WebView2BridgeHelper.Old
 {
     /// <summary>
     /// A function can accept one of the following args: string, int, boolean

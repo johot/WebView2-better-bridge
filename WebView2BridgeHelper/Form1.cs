@@ -29,7 +29,7 @@ namespace WebView2BridgeHelper
             await webView2.EnsureCoreWebView2Async(null);
 
             webView2.Source = new Uri("http://localhost:3000");
-            webView2.CoreWebView2.AddHostObjectToScript("bridge", new SampleBridge(webView2));
+            webView2.CoreWebView2.AddHostObjectToScript("bridge", new BridgeHelper(new SimpleBridge(), webView2));
         }
     }
 

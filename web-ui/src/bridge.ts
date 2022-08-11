@@ -1,38 +1,22 @@
 export class Bridge {
   private webViewBridge = (window as any).chrome.webview.hostObjects.bridge;
 
-  runFunction = async <TResult = any>(
-    functionName: string,
-    args: any[]
-  ): Promise<any> => {
-    const fnArgs = this.convertArgs(args);
-
-    const rawReturnValue = await this.webViewBridge[functionName](...fnArgs);
-
-    // Try to deserialize if string (we can't be sure if it is json or not)
-    if (typeof rawReturnValue === "string") {
-      try {
-        const objectReturnValue = JSON.parse(rawReturnValue);
-        return objectReturnValue as TResult;
-      } catch (err) {
-        // Json deserialize failed return original result
-        return rawReturnValue;
-      }
-    } else {
-      return rawReturnValue;
-    }
-  };
-
   private generateCallId(functionName: string): string {
     return functionName + "_" + Math.random().toString(36).substr(2, 9);
   }
 
-  runFunctionAsync = async <TResult = any>(
+  // How fast can we go?
+  speedTest = async () => {
+    const result = await this.webViewBridge.speedTest();
+    return result;
+  };
+
+  runFunction = async <TResult = any>(
     functionName: string,
     args: any[],
     timeout = 60000
   ): Promise<TResult> => {
-    const promise = new Promise<TResult>((resolve, reject) => {
+    const promise = new Promise<TResult>(async (resolve, reject) => {
       const callId = this.generateCallId(functionName);
 
       const messageHandler = (event: {
@@ -41,6 +25,7 @@ export class Bridge {
           callId: string;
         };
       }) => {
+        // Since this function gets called for every message we must see if it is "our" message otherwise ignore
         if (event.data.callId === callId) {
           (window as any).chrome.webview.removeEventListener(
             "message",
@@ -70,27 +55,15 @@ export class Bridge {
         messageHandler
       );
 
-      const fnArgs = this.convertArgs(args);
-      fnArgs.push(callId);
+      const argsJson = args.map((a) => JSON.stringify(a));
 
-      // Because its async on the C# side there will be no return value we can use
-      this.webViewBridge[functionName](...fnArgs);
+      await this.webViewBridge.runFunction(
+        functionName,
+        JSON.stringify(argsJson),
+        callId
+      );
     });
 
     return promise;
   };
-
-  private convertArgs(args: any[]) {
-    const fnArgs: any[] = [];
-
-    for (const arg of args) {
-      if (typeof arg === "object") {
-        fnArgs.push(JSON.stringify(arg));
-      } else {
-        fnArgs.push(arg);
-      }
-    }
-
-    return fnArgs;
-  }
 }

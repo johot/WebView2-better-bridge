@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Old\BridgeHelperBase.cs.txt" />
+    <None Remove="Old\SampleBridge.cs.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Old\BridgeHelperBase.cs.txt" />
+    <Compile Include="Old\SampleBridge.cs.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1158-prerelease" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
