@@ -50,7 +50,7 @@ public Message HelloWorld(int someData, string moreData, Message message)
 }
 ```
 
-#### Calling async C# methods
+### Calling async C# methods
 
 ```ts
 // TypeScript
