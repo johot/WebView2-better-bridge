@@ -8,6 +8,8 @@ There currently is no NuGet package, instead copy the `BetterBridge.cs` and `bet
 
 ## Usage
 
+The documentation here is just a light overview, for full details check the sample projects.
+
 ## Initialize bridge
 
 - Create a regular class that contains all the methods you can call from JS (see `SampleBridge.cs` for an example). Both async and sync methods with complex object parameters and return values will work(!).
@@ -19,8 +21,6 @@ There currently is no NuGet package, instead copy the `BetterBridge.cs` and `bet
   ```
 
   _Notice how BetterBridge wraps your own bridge class._
-
-> See sample project for more details.
 
 ### Calling sync C# methods
 
@@ -101,7 +101,7 @@ bridge.addMessageHandler((type, data) => {
 
 ## Performance
 
-Uses some Reflection under the hood but when testing I saw very small performance differences often in the range of 0.1-0.5 ms. But your results may vary :).
+Uses some reflection under the hood but when testing I saw very small performance differences often in the range of 0.1-0.5 ms. But your results may vary :).
 
 ## Current limitations
 
