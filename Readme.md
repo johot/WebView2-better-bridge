@@ -1,79 +1,108 @@
-# WebView2 Bridge Helper
+# WebView2 Better Bridge
+
+Call C# methods (async and sync) with complex parameters and return values from TS/JS!
 
 ## Installation
-There currently is no NuGet package, instead copy the `BridgeHelperBase.cs` and `bridge.ts` files to your own project.
+
+There currently is no NuGet package, instead copy the `BetterBridge.cs` and `betterBridge.ts` files to your own project.
 
 ## Usage
 
 ## Initialize bridge
-* Create a class that contains all the methods you can call from JS and inherit from `BridgeHelperBase`
-* Register it by calling: `webView2.CoreWebView2.AddHostObjectToScript("bridge", new SampleBridge(webView2))`
 
-*See sample project for more details.*
+- Create a regular class that contains all the methods you can call from JS (see `SampleBridge.cs` for an example). Both async and sync methods with complex object parameters and return values will work(!).
+
+- Register it by calling:
+
+  ```cs
+  webView2.CoreWebView2.AddHostObjectToScript("bridge", new BetterBridge(new SimpleBridge(), webView2));
+  ```
+
+  _Notice how BetterBridge wraps your own bridge class._
+
+> See sample project for more details.
 
 ### Calling sync C# methods
 
-```cs
-// C#
-public string helloWorld(string message, string personJson)
-{
-    // Converts complex objects from string->object
-    var person = ParseArg<Person>(personJson);
-
-    person.Messages.Add(message);
-
-    // Converts complex objects from object->string
-    return Result(person);
-}
-```
-
-```tsx
+```ts
 // TypeScript
-const bridge = new Bridge();
+const bridge = new BetterBridge();
 
-const result = await bridge.runFunction("helloWorld", [
-  "hello from JS!",
+const result = await bridge.runMethod("HelloWorld", [
+  99,
+  "abc",
   {
-    firstName: "foo",
-    lastName: "bar",
+    text: "hello from JS!",
+    sent: new Date(),
   },
 ]);
+```
+
+```cs
+// C#
+public Message HelloWorld(int someData, string moreData, Message message)
+{
+    return new Message()
+    {
+        Text = $"Hi from C#! Thank you for the data: {message.Text} {message.Sent} {someData} and {moreData}.",
+        Sent = DateTime.Now
+    };
+}
 ```
 
 #### Calling async C# methods
 
-```cs
-// C#
-
-// Note: Always add an ending parameter called "callId" for all async methods, you don't have to set this value yourself from JS
-public async Task helloWorldAsync(string message, string personJson, string callId)
-{
-    // Converts complex objects from string->object
-    var person = ParseArg<Person>(personJson);
-
-    person.Messages.Add(message);
-
-    await Task.Delay(1000);
-
-    // Converts complex objects from object->string and posts a message back
-    // over the bridge so we can resolve a promise
-    ResultAsync(person, callId);
-}
-```
-
-> **Why no return value?** In the async sample we don't have to return a value. The reason for this is that a return value from an async method over the WebView2 bridge will always be null, that is why we need to post a message back instead by using the `ResultAsync` utility method.
-
-> **What is `callId`**? Since we are sending the return value in the async case back as a message we need to match the original call (from JS) and the return message result using a unique id. If we didn't do this we could end up picking up the result of a different call when waiting for our promise to resolve on the JavaScript side.
-
-```tsx
+```ts
 // TypeScript
-const bridge = new Bridge();
+const bridge = new BetterBridge();
 
-const result = await bridge.runFunctionAsync("helloWorld", [
-  "hello from JS!",
+const result = await bridge.runMethod("HelloWorldAsync", [
+  99,
+  "abc",
   {
-    firstName: "foo",
-    lastName: "bar",
+    text: "hello from JS!",
+    sent: new Date(),
   },
 ]);
 ```
+
+```cs
+// C#
+public async Task<Message> HelloWorldAsync(int someData, string moreData, Message message)
+{
+    await Task.Delay(1000);
+
+    var msg = new Message()
+    {
+        Text = $"Hi from C#! Thank you for the data: {message.Text} {message.Sent} {someData} and {moreData}.",
+        Sent = DateTime.Now
+    };
+
+    await Task.Delay(1000);
+
+    return msg;
+}
+```
+
+### Sending messages from C# to TS/JS
+
+```cs
+// C#
+BetterBridge.Current.SendBridgeMessage("message", new Message() { Text = "I want to report something", Sent = DateTime.Now });
+```
+
+```ts
+// TypeScript
+const bridge = new BetterBridge();
+bridge.addMessageHandler((type, data) => {
+  console.log("Got message", type, data);
+});
+```
+
+## Performance
+
+Uses some Reflection under the hood but when testing I saw very small performance differences often in the range of 0.1-0.5 ms. But your results may vary :).
+
+## Current limitations
+
+Currently designed for use by a single bridge class (and BetterBridge instance) but should be pretty easy to make work for multiple bridges / host objects if needed.

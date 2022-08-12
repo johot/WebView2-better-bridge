@@ -1,77 +1,84 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
-import { Bridge } from "./bridge";
+import { BetterBridge } from "./betterBridge";
 
-const bridge = new Bridge();
+const bridge = new BetterBridge();
 
 function App() {
+  useEffect(() => {
+    bridge.addMessageHandler((type, data) => {
+      alert("Got message of type: " + type + " data: " + JSON.stringify(data));
+    });
+  });
+
   return (
     <div className="App" style={{ display: "flex", gap: 16, padding: 16 }}>
       <button
         onClick={async () => {
           var startTime = performance.now();
-          const result = await bridge.runFunction("helloWorld", [
-            "hello from JS!",
+          const result = await bridge.runMethod("HelloWorld", [
+            99,
+            "abc",
             {
-              firstName: "foo",
-              lastName: "bar",
+              text: "hello from JS!",
+              sent: new Date(),
             },
           ]);
           var endTime = performance.now();
-
-          alert(
-            "Got result back: " +
-              JSON.stringify(result, undefined, 2) +
-              " it took " +
-              (endTime - startTime) +
-              "milliseconds"
-          );
+          console.log(result, endTime - startTime + "milliseconds");
+          alert("Got result back: " + JSON.stringify(result, undefined, 2));
         }}
       >
-        Send message (C# sync)
+        Call method (C# sync)
       </button>
       <button
         onClick={async () => {
           var startTime = performance.now();
-          const result = await bridge.runFunction("helloWorldAsync", [
-            "hello from JS!",
+          const result = await bridge.runMethod("HelloWorldAsync", [
+            99,
+            "abc",
             {
-              firstName: "foo",
-              lastName: "bar",
+              text: "hello from JS!",
+              sent: new Date(),
             },
           ]);
           var endTime = performance.now();
+          console.log(result, endTime - startTime + "milliseconds");
 
-          alert(
-            "Got result back: " +
-              JSON.stringify(result, undefined, 2) +
-              " it took " +
-              (endTime - startTime) +
-              "milliseconds"
-          );
+          alert("Got result back: " + JSON.stringify(result, undefined, 2));
         }}
       >
-        Send message (C# async)
+        Call method (C# async)
       </button>
+
       <button
+        onClick={async () => {
+          var startTime = performance.now();
+          const result = await bridge.runMethod(
+            "StartSendingMessagesAsync",
+            []
+          );
+          var endTime = performance.now();
+          console.log(result, endTime - startTime + "milliseconds");
+
+          alert("Got result back: " + JSON.stringify(result, undefined, 2));
+        }}
+      >
+        Start sending messages from C#
+      </button>
+
+      {/* <button
         onClick={async () => {
           var startTime = performance.now();
           const result = await bridge.speedTest();
           var endTime = performance.now();
+          console.log(result, endTime - startTime + "milliseconds");
 
-          alert(
-            "Got result back: " +
-              result +
-              " it took " +
-              (endTime - startTime) +
-              "milliseconds"
-          );
-
-          console.log(endTime - startTime);
+          alert("Got result back: " + JSON.stringify(result, undefined, 2));
         }}
       >
         Regular call (for speed testing)
-      </button>
+      </button> */}
     </div>
   );
 }

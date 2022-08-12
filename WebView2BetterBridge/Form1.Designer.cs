@@ -1,5 +1,5 @@
 ﻿
-namespace WebView2BridgeHelper
+namespace WebView2BetterBridge
 {
     partial class Form1
     {

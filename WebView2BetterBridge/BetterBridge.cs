@@ -7,24 +7,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebView2BridgeHelper
+namespace WebView2BetterBridge
 {
     /// <summary>
     /// Subscribers to messages from TS/JS and invokes methods / parses JSON etc for a wrapping bridge class.
     /// Giving us the ability to use any arguments, use async methods pass complex objects etc :D
     /// </summary>
-    public class BridgeHelper
+    public class BetterBridge
     {
         private readonly WebView2 webView2;
 
         // Will invoke methods on this object
         private readonly object bridgeClass;
         private Type bridgeClassType;
-        public BridgeHelper(object bridgeClass, WebView2 webView2)
+
+        public static BetterBridge Current { get; private set; }
+
+        public BetterBridge(object bridgeClass, WebView2 webView2)
         {
             this.webView2 = webView2;
             this.bridgeClass = bridgeClass;
             this.bridgeClassType = this.bridgeClass.GetType();
+            BetterBridge.Current = this;
         }
 
         private JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
@@ -38,6 +42,8 @@ namespace WebView2BridgeHelper
 
         public string speedTest()
         {
+            webView2.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new Message() { Text = "I am a C# method... speed test" }));
+
             return "hi";
         }
 
@@ -52,18 +58,18 @@ namespace WebView2BridgeHelper
         /// <summary>
         /// Called from TS/JS side works on both async and regular methods of the wrapped class :D !
         /// </summary>
-        /// <param name="fnName"></param>
+        /// <param name="methodName"></param>
         /// <param name="argsJson"></param>
         /// <param name="callId"></param>
         /// <returns></returns>
-        public async Task runFunction(string fnName, string argsJson, string callId)
+        public async Task RunMethod(string methodName, string argsJson, string callId)
         {
             // We have stored each argument as json data in an array, the array is also encoded to a string
             // since webview can't invoke string[] array functions
             var jsonDataArray = JsonConvert.DeserializeObject<string[]>(argsJson);
 
-            var method = bridgeClassType.GetMethod(fnName);
-            var parameters = bridgeClassType.GetMethod(fnName).GetParameters();
+            var method = bridgeClassType.GetMethod(methodName);
+            var parameters = bridgeClassType.GetMethod(methodName).GetParameters();
 
             if (parameters.Length != jsonDataArray.Length)
                 throw new Exception("Wrong number of arguments, expected: " + parameters.Length + " but got: " + jsonDataArray.Length);
@@ -100,21 +106,26 @@ namespace WebView2BridgeHelper
 
                 // Package the result
                 resultJson = JsonConvert.SerializeObject(new BridgeResultMessage() { Result = taskResult, CallId = callId }, jsonSerializerSettings);
-
             }
 
-            // Since we can't return anything from an async function we post it back as a message instead with a callid to match the promise
+            // Since we can't return anything from an async function we post it back as a message instead with a callid to match the promise on the JS side
             webView2.CoreWebView2.PostWebMessageAsJson(resultJson);
             //return "";
         }
     }
 
+    /// <summary>
+    /// For sending messages (like progress etc) to TS/JS.
+    /// </summary>
     public class BridgeMessage
     {
         public string Type { get; set; }
         public object Data { get; set; }
     }
 
+    /// <summary>
+    /// For returning method results.
+    /// </summary>
     public class BridgeResultMessage
     {
         public string CallId { get; set; }

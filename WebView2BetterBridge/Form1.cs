@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace WebView2BridgeHelper
+namespace WebView2BetterBridge
 {
     public partial class Form1 : Form
     {
@@ -29,7 +29,7 @@ namespace WebView2BridgeHelper
             await webView2.EnsureCoreWebView2Async(null);
 
             webView2.Source = new Uri("http://localhost:3000");
-            webView2.CoreWebView2.AddHostObjectToScript("bridge", new BridgeHelper(new SimpleBridge(), webView2));
+            webView2.CoreWebView2.AddHostObjectToScript("bridge", new BetterBridge(new SimpleBridge(), webView2));
         }
     }
 

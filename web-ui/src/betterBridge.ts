@@ -1,23 +1,47 @@
-export class Bridge {
+export class BetterBridge {
   private webViewBridge = (window as any).chrome.webview.hostObjects.bridge;
+  private messageHandlers: MessageHandler[] = [];
+
+  constructor() {
+    (window as any).chrome.webview.addEventListener("message", (event: any) => {
+      // This data will already be deserialized for us
+      const eventData = event.data;
+      const type: string = eventData.type;
+      const data: any = eventData.data;
+
+      if (type) {
+        this.onMessage(type, data);
+      }
+    });
+  }
+
+  addMessageHandler = (messageHandler: MessageHandler) => {
+    this.messageHandlers.push(messageHandler);
+  };
+
+  removeMessageHandler = (messageHandler: MessageHandler) => {
+    const index = this.messageHandlers.indexOf(messageHandler);
+    this.messageHandlers.splice(index, 1);
+  };
+
+  private onMessage = (type: string, data: any) => {
+    // Call all handlers
+    for (const handler of this.messageHandlers) {
+      handler(type, data);
+    }
+  };
 
   private generateCallId(functionName: string): string {
     return functionName + "_" + Math.random().toString(36).substr(2, 9);
   }
 
-  // How fast can we go?
-  speedTest = async () => {
-    const result = await this.webViewBridge.speedTest();
-    return result;
-  };
-
-  runFunction = async <TResult = any>(
-    functionName: string,
+  runMethod = async <TResult = any>(
+    methodName: string,
     args: any[],
     timeout = 60000
   ): Promise<TResult> => {
     const promise = new Promise<TResult>(async (resolve, reject) => {
-      const callId = this.generateCallId(functionName);
+      const callId = this.generateCallId(methodName);
 
       const messageHandler = (event: {
         data: {
@@ -47,7 +71,7 @@ export class Bridge {
           messageHandler
         );
 
-        reject(`The function ${functionName} timed out`);
+        reject(`The function ${methodName} timed out`);
       }, timeout);
 
       (window as any).chrome.webview.addEventListener(
@@ -57,8 +81,8 @@ export class Bridge {
 
       const argsJson = args.map((a) => JSON.stringify(a));
 
-      await this.webViewBridge.runFunction(
-        functionName,
+      await this.webViewBridge.RunMethod(
+        methodName,
         JSON.stringify(argsJson),
         callId
       );
@@ -66,4 +90,12 @@ export class Bridge {
 
     return promise;
   };
+
+  // How fast can we go? For debugging / testing only
+  speedTest = async () => {
+    const result = await this.webViewBridge.speedTest();
+    return result;
+  };
 }
+
+export type MessageHandler = (type: string, data: any) => void;
