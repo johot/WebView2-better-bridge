@@ -10,7 +10,7 @@ There currently is no NuGet package, instead copy the `BetterBridge.cs` and `bet
 
 The documentation here is just a light overview, for full details check the sample projects.
 
-## Initialize bridge
+### Initialize bridge
 
 - Create a regular class that contains all the methods you can call from JS (see `SampleBridge.cs` for an example). Both async and sync methods with complex object parameters and return values will work(!).
 
