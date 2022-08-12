@@ -8,13 +8,20 @@ namespace WebView2BetterBridge
 {
     public class SimpleBridge
     {
+        private readonly BetterBridgeMessageSender messageSender;
+
+        public SimpleBridge(BetterBridgeMessageSender messageSender)
+        {
+            this.messageSender = messageSender;
+        }
+
         public async Task StartSendingMessagesAsync()
         {
-            BetterBridge.Current.SendMessage("message", new Message() { Text = "Message 1", Sent = DateTime.Now });
+            messageSender.SendMessage("message", new Message() { Text = "Message 1", Sent = DateTime.Now });
             await Task.Delay(3000);
-            BetterBridge.Current.SendMessage("message", new Message() { Text = "Message 2", Sent = DateTime.Now });
+            messageSender.SendMessage("message", new Message() { Text = "Message 2", Sent = DateTime.Now });
             await Task.Delay(3000);
-            BetterBridge.Current.SendMessage("message", new Message() { Text = "Message 3", Sent = DateTime.Now });
+            messageSender.SendMessage("message", new Message() { Text = "Message 3", Sent = DateTime.Now });
         }
 
         public Message HelloWorld(int someData, string moreData, Message message)

@@ -17,7 +17,7 @@ The documentation here is just a very light overview, for full details check the
 - Register it by calling:
 
   ```cs
-  webView2.CoreWebView2.AddHostObjectToScript("bridge", new BetterBridge(new SimpleBridge(), webView2));
+  webView2.CoreWebView2.AddHostObjectToScript("bridge", new BetterBridge(new MyBridge(), webView2));
   ```
 
   _Notice how BetterBridge wraps your own bridge class._
@@ -86,9 +86,12 @@ public async Task<Message> HelloWorldAsync(int someData, string moreData, Messag
 
 ### Sending messages from C# to TS/JS
 
+Makes it a bit easier to send messages from C# to TS/JS instead of using `webView2.CoreWebView2.PostWebMessageAsJson` directly.
+
 ```cs
 // C#
-BetterBridge.Current.SendMessage("message", new Message() { Text = "I want to report something", Sent = DateTime.Now });
+var messageSender = new BetterBridgeMessageSender(webView2);
+messageSender.SendMessage("message", new Message() { Text = "I want to report something", Sent = DateTime.Now });
 ```
 
 ```ts

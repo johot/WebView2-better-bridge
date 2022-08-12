@@ -21,14 +21,11 @@ namespace WebView2BetterBridge
         private readonly object bridgeClass;
         private Type bridgeClassType;
 
-        public static BetterBridge Current { get; private set; }
-
         public BetterBridge(object bridgeClass, WebView2 webView2)
         {
             this.webView2 = webView2;
             this.bridgeClass = bridgeClass;
             this.bridgeClassType = this.bridgeClass.GetType();
-            BetterBridge.Current = this;
         }
 
         private JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
@@ -45,14 +42,6 @@ namespace WebView2BetterBridge
             webView2.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new Message() { Text = "I am a C# method... speed test" }));
 
             return "hi";
-        }
-
-        public void SendMessage(string type, object data)
-        {
-            // Convert to JSON
-            string result = JsonConvert.SerializeObject(new BridgeMessage() { Type = type, Data = data }, jsonSerializerSettings);
-
-            webView2.CoreWebView2.PostWebMessageAsJson(result);
         }
 
         /// <summary>
@@ -112,6 +101,32 @@ namespace WebView2BetterBridge
             webView2.CoreWebView2.PostWebMessageAsJson(resultJson);
             //return "";
         }
+    }
+
+    public class BetterBridgeMessageSender
+    {
+        private readonly WebView2 webView2;
+
+        public BetterBridgeMessageSender(WebView2 webView2)
+        {
+            this.webView2 = webView2;
+        }
+        public void SendMessage(string type, object data)
+        {
+            // Convert to JSON
+            string result = JsonConvert.SerializeObject(new BridgeMessage() { Type = type, Data = data }, jsonSerializerSettings);
+
+            webView2.CoreWebView2.PostWebMessageAsJson(result);
+        }
+
+        private JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new CamelCaseNamingStrategy()
+            },
+            //Formatting = Formatting.Indented
+        };
     }
 
     /// <summary>
