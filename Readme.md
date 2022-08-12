@@ -1,6 +1,6 @@
 # WebView2 Better Bridge
 
-Call C# methods (async and sync) with complex parameters and return values from TS/JS!
+Using WebView2 call C# methods (async and sync) with complex parameters and return values from TS/JS!
 
 ## Installation
 
@@ -8,7 +8,7 @@ There currently is no NuGet package, instead copy the `BetterBridge.cs` and `bet
 
 ## Usage
 
-The documentation here is just a light overview, for full details check the sample projects.
+The documentation here is just a very light overview, for full details check the sample projects.
 
 ### Initialize bridge
 
@@ -88,7 +88,7 @@ public async Task<Message> HelloWorldAsync(int someData, string moreData, Messag
 
 ```cs
 // C#
-BetterBridge.Current.SendBridgeMessage("message", new Message() { Text = "I want to report something", Sent = DateTime.Now });
+BetterBridge.Current.SendMessage("message", new Message() { Text = "I want to report something", Sent = DateTime.Now });
 ```
 
 ```ts
@@ -101,7 +101,7 @@ bridge.addMessageHandler((type, data) => {
 
 ## Performance
 
-Uses some reflection under the hood but when testing I saw very small performance differences often in the range of 0.1-0.5 ms. But your results may vary :).
+Uses some reflection under the hood but when testing I saw very small performance differences often in the range of 0.1-0.5 ms. But your results may vary 😊.
 
 ## Current limitations
 

@@ -47,7 +47,7 @@ namespace WebView2BetterBridge
             return "hi";
         }
 
-        public void SendBridgeMessage(string type, object data)
+        public void SendMessage(string type, object data)
         {
             // Convert to JSON
             string result = JsonConvert.SerializeObject(new BridgeMessage() { Type = type, Data = data }, jsonSerializerSettings);
