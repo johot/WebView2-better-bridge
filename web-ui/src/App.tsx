@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import { BetterBridge } from "./betterBridge";
 
-const bridge = new BetterBridge();
+const bridge = new BetterBridge("bridge");
 
 function App() {
   useEffect(() => {

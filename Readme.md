@@ -26,7 +26,7 @@ The documentation here is just a very light overview, for full details check the
 
 ```ts
 // TypeScript
-const bridge = new BetterBridge();
+const bridge = new BetterBridge("bridge");
 
 const result = await bridge.runMethod("HelloWorld", [
   99,
@@ -54,7 +54,7 @@ public Message HelloWorld(int someData, string moreData, Message message)
 
 ```ts
 // TypeScript
-const bridge = new BetterBridge();
+const bridge = new BetterBridge("bridge");
 
 const result = await bridge.runMethod("HelloWorldAsync", [
   99,
@@ -96,7 +96,7 @@ messageSender.SendMessage("message", new Message() { Text = "I want to report so
 
 ```ts
 // TypeScript
-const bridge = new BetterBridge();
+const bridge = new BetterBridge("bridge");
 bridge.addMessageHandler((type, data) => {
   console.log("Got message", type, data);
 });
@@ -105,7 +105,3 @@ bridge.addMessageHandler((type, data) => {
 ## Performance
 
 Uses some reflection under the hood but when testing I saw very small performance differences often in the range of 0.1-0.5 ms. But your results may vary 😊.
-
-## Current limitations
-
-Currently designed for use by a single bridge class (and BetterBridge instance) but should be pretty easy to make work for multiple bridges / host objects if needed.

@@ -53,7 +53,7 @@ namespace WebView2BetterBridge
             this.Controls.Add(this.webView2);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "Form1";
-            this.Text = "Bridge Helper Sample";
+            this.Text = "Better Bridge Sample";
             ((System.ComponentModel.ISupportInitialize)(this.webView2)).EndInit();
             this.ResumeLayout(false);
 

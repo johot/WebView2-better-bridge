@@ -1,8 +1,10 @@
 export class BetterBridge {
-  private webViewBridge = (window as any).chrome.webview.hostObjects.bridge;
+  private webViewBridge: any = undefined;
   private messageHandlers: MessageHandler[] = [];
 
-  constructor() {
+  constructor(bridgeName: string) {
+    this.webViewBridge = (window as any).chrome.webview.hostObjects[bridgeName];
+
     (window as any).chrome.webview.addEventListener("message", (event: any) => {
       // This data will already be deserialized for us
       const eventData = event.data;
