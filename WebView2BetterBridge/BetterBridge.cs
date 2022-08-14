@@ -37,13 +37,6 @@ namespace WebView2BetterBridge
             //Formatting = Formatting.Indented
         };
 
-        public string speedTest()
-        {
-            webView2.CoreWebView2.PostWebMessageAsJson(JsonConvert.SerializeObject(new Message() { Text = "I am a C# method... speed test" }));
-
-            return "hi";
-        }
-
         /// <summary>
         /// Called from TS/JS side works on both async and regular methods of the wrapped class :D !
         /// </summary>
@@ -91,7 +84,11 @@ namespace WebView2BetterBridge
                 // Async method:
 
                 await resultTypedTask;
-                var taskResult = (object)((dynamic)resultTypedTask).Result;
+
+                // If has a "Result" property return the value otherwise null (Task<void> etc)
+                var resultProperty = resultTypedTask.GetType().GetProperty("Result");
+
+                var taskResult = resultProperty != null ? resultProperty.GetValue(resultTypedTask) : null;
 
                 // Package the result
                 resultJson = JsonConvert.SerializeObject(new BridgeResultMessage() { Result = taskResult, CallId = callId }, jsonSerializerSettings);
