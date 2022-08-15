@@ -18,9 +18,9 @@ namespace WebView2BetterBridge
         public async Task StartSendingMessagesAsync()
         {
             messageSender.SendMessage("message", new Message() { Text = "Message 1", Sent = DateTime.Now });
-            await Task.Delay(3000);
+            await Task.Delay(1000);
             messageSender.SendMessage("message", new Message() { Text = "Message 2", Sent = DateTime.Now });
-            await Task.Delay(3000);
+            await Task.Delay(1000);
             messageSender.SendMessage("message", new Message() { Text = "Message 3", Sent = DateTime.Now });
         }
 
@@ -35,15 +35,13 @@ namespace WebView2BetterBridge
 
         public async Task<Message> HelloWorldAsync(int someData, string moreData, Message message)
         {
-            await Task.Delay(1000);
-
             var msg = new Message()
             {
                 Text = $"Hi from C#! Thank you for the data: {message.Text} {message.Sent} {someData} and {moreData}.",
                 Sent = DateTime.Now
             };
 
-            await Task.Delay(1000);
+            await Task.Delay(500);
 
             return msg;
         }

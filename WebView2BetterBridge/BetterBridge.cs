@@ -2,9 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WebView2BetterBridge
@@ -37,6 +35,11 @@ namespace WebView2BetterBridge
             //Formatting = Formatting.Indented
         };
 
+        public string[] GetMethods()
+        {
+            return this.bridgeClassType.GetMethods().Select(m => m.Name).ToArray();
+        }
+
         /// <summary>
         /// Called from TS/JS side works on both async and regular methods of the wrapped class :D !
         /// </summary>
@@ -44,7 +47,7 @@ namespace WebView2BetterBridge
         /// <param name="argsJson"></param>
         /// <param name="callId"></param>
         /// <returns></returns>
-        public async Task RunMethod(string methodName, string argsJson, string callId)
+        public async Task<string> RunMethod(string methodName, string argsJson)
         {
             // We have stored each argument as json data in an array, the array is also encoded to a string
             // since webview can't invoke string[] array functions
@@ -77,7 +80,7 @@ namespace WebView2BetterBridge
                 // Regular method:
 
                 // Package the result
-                resultJson = JsonConvert.SerializeObject(new BridgeResultMessage() { Result = resultTyped, CallId = callId }, jsonSerializerSettings);
+                resultJson = JsonConvert.SerializeObject(resultTyped, jsonSerializerSettings);
             }
             else
             {
@@ -91,12 +94,10 @@ namespace WebView2BetterBridge
                 var taskResult = resultProperty != null ? resultProperty.GetValue(resultTypedTask) : null;
 
                 // Package the result
-                resultJson = JsonConvert.SerializeObject(new BridgeResultMessage() { Result = taskResult, CallId = callId }, jsonSerializerSettings);
+                resultJson = JsonConvert.SerializeObject(taskResult, jsonSerializerSettings);
             }
 
-            // Since we can't return anything from an async function we post it back as a message instead with a callid to match the promise on the JS side
-            webView2.CoreWebView2.PostWebMessageAsJson(resultJson);
-            //return "";
+            return resultJson;
         }
     }
 
@@ -133,14 +134,5 @@ namespace WebView2BetterBridge
     {
         public string Type { get; set; }
         public object Data { get; set; }
-    }
-
-    /// <summary>
-    /// For returning method results.
-    /// </summary>
-    public class BridgeResultMessage
-    {
-        public string CallId { get; set; }
-        public object Result { get; set; }
     }
 }

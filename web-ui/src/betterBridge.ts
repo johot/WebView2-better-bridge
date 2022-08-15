@@ -1,9 +1,39 @@
-export class BetterBridge {
+interface AnyMethod {
+  // Keys can be strings, numbers, or symbols.
+  // If you know it to be strings only, you can also restrict it to that.
+  // For the value you can use any or unknown,
+  // with unknown being the more defensive approach.
+  [methodName: string | number | symbol]: any;
+}
+
+export function createBridge<
+  T = Record<string, (...args: any[]) => Promise<any>>
+>(bridgeName: string) {
+  return new BetterBridge(bridgeName) as BetterBridge & T;
+}
+
+class BetterBridge {
   private webViewBridge: any = undefined;
   private messageHandlers: MessageHandler[] = [];
 
   constructor(bridgeName: string) {
     this.webViewBridge = (window as any).chrome.webview.hostObjects[bridgeName];
+
+    var startTime = performance.now();
+
+    const availableMethods = (window as any).chrome.webview.hostObjects.sync[
+      bridgeName
+    ].GetMethods();
+
+    console.log(performance.now() - startTime + " it took...");
+
+    availableMethods.forEach((methodName: string) => {
+      const lowerCaseMethodName = lowercaseFirstLetter(methodName);
+
+      (this as any)[lowerCaseMethodName] = (...args: any[]) => {
+        return this.runMethod(methodName, args);
+      };
+    });
 
     (window as any).chrome.webview.addEventListener("message", (event: any) => {
       // This data will already be deserialized for us
@@ -37,7 +67,22 @@ export class BetterBridge {
     return functionName + "_" + Math.random().toString(36).substr(2, 9);
   }
 
-  runMethod = async <TResult = any>(
+  // Only works in WebView2 1.0.1293.44+
+  private runMethod = async <TResult = any>(
+    methodName: string,
+    args: any[]
+  ): Promise<TResult> => {
+    const argsJson = args.map((a) => JSON.stringify(a));
+
+    const returnJson = await this.webViewBridge.RunMethod(
+      methodName,
+      JSON.stringify(argsJson)
+    );
+
+    return JSON.parse(returnJson);
+  };
+
+  runMethodLegacyMode = async <TResult = any>(
     methodName: string,
     args: any[],
     timeout = 60000
@@ -101,3 +146,7 @@ export class BetterBridge {
 }
 
 export type MessageHandler = (type: string, data: any) => void;
+
+function lowercaseFirstLetter(name: string) {
+  return name.charAt(0).toLowerCase() + name.slice(1);
+}

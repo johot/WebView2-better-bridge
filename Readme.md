@@ -12,7 +12,7 @@ The documentation here is just a very light overview, for full details check the
 
 ### Initialize bridge
 
-- Create a regular class that contains all the methods you can call from TS/JS (see `SampleBridge.cs` for an example). Both async and sync methods with complex object parameters and return values will work(!).
+- Create a regular class that contains all the methods you can call from TS/JS (see `SampleBridge.cs` for an example). Both async and sync methods with complex object parameters and return values will work.
 
 - Register it by calling:
 
@@ -22,20 +22,52 @@ The documentation here is just a very light overview, for full details check the
 
   _Notice how BetterBridge wraps your own bridge class._
 
-### Calling sync C# methods
+### Calling async C# methods
+
+> Note: The TS/JS method on the bridge should use camelCase.
 
 ```ts
 // TypeScript
-const bridge = new BetterBridge("bridge");
+import { createBridge } from "./betterBridge";
+const bridge = createBridge("bridge");
 
-const result = await bridge.runMethod("HelloWorld", [
-  99,
-  "abc",
-  {
-    text: "hello from JS!",
-    sent: new Date(),
-  },
-]);
+const result = await bridge.helloWorldAsync(99, "abc", {
+  text: "hello from JS!",
+  sent: new Date(),
+});
+```
+
+```cs
+// C#
+public async Task<Message> HelloWorldAsync(int someData, string moreData, Message message)
+{
+    var msg = new Message()
+    {
+        Text = $"Hi from C#! Thank you for the data: {message.Text} {message.Sent} {someData} and {moreData}.",
+        Sent = DateTime.Now
+    };
+
+    await Task.Delay(500);
+
+    return msg;
+}
+```
+
+### Calling sync C# methods
+
+> Note: The TS/JS method on the bridge should use camelCase.
+
+> Note: Even though the C# method is sync it's still resolved to a Promise that we have to await. This is the recommended way since we do not want to lock up the UI.
+
+```ts
+// TypeScript
+import { createBridge } from "./betterBridge";
+const bridge = createBridge("bridge");
+
+const result = await bridge.helloWorld(99, "abc", {
+  text: "hello from JS!",
+  sent: new Date(),
+});
 ```
 
 ```cs
@@ -47,40 +79,6 @@ public Message HelloWorld(int someData, string moreData, Message message)
         Text = $"Hi from C#! Thank you for the data: {message.Text} {message.Sent} {someData} and {moreData}.",
         Sent = DateTime.Now
     };
-}
-```
-
-### Calling async C# methods
-
-```ts
-// TypeScript
-const bridge = new BetterBridge("bridge");
-
-const result = await bridge.runMethod("HelloWorldAsync", [
-  99,
-  "abc",
-  {
-    text: "hello from JS!",
-    sent: new Date(),
-  },
-]);
-```
-
-```cs
-// C#
-public async Task<Message> HelloWorldAsync(int someData, string moreData, Message message)
-{
-    await Task.Delay(1000);
-
-    var msg = new Message()
-    {
-        Text = $"Hi from C#! Thank you for the data: {message.Text} {message.Sent} {someData} and {moreData}.",
-        Sent = DateTime.Now
-    };
-
-    await Task.Delay(1000);
-
-    return msg;
 }
 ```
 
@@ -96,7 +94,9 @@ messageSender.SendMessage("message", new Message() { Text = "I want to report so
 
 ```ts
 // TypeScript
-const bridge = new BetterBridge("bridge");
+import { createBridge } from "./betterBridge";
+const bridge = createBridge("bridge");
+
 bridge.addMessageHandler((type, data) => {
   console.log("Got message", type, data);
 });

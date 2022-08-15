@@ -1,8 +1,18 @@
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "./App.css";
-import { BetterBridge } from "./betterBridge";
+import { createBridge } from "./betterBridge";
 
-const bridge = new BetterBridge("bridge");
+interface SimpleBridge {
+  helloWorld: (number: number, string: string, message: any) => Promise<any>;
+  helloWorldAsync: (
+    number: number,
+    string: string,
+    message: any
+  ) => Promise<any>;
+  startSendingMessagesAsync: () => Promise<any>;
+}
+
+const bridge = createBridge<SimpleBridge>("bridge");
 
 function App() {
   useEffect(() => {
@@ -16,16 +26,13 @@ function App() {
       <button
         onClick={async () => {
           var startTime = performance.now();
-          const result = await bridge.runMethod("HelloWorld", [
-            99,
-            "abc",
-            {
-              text: "hello from JS!",
-              sent: new Date(),
-            },
-          ]);
+          const result = await bridge.helloWorld(99, "abc", {
+            text: "hello from JS!",
+            sent: new Date(),
+          });
           var endTime = performance.now();
-          console.log(result, endTime - startTime + "milliseconds");
+          var perf = endTime - startTime;
+          console.log(result, perf + "milliseconds");
           alert("Got result back: " + JSON.stringify(result, undefined, 2));
         }}
       >
@@ -34,14 +41,10 @@ function App() {
       <button
         onClick={async () => {
           var startTime = performance.now();
-          const result = await bridge.runMethod("HelloWorldAsync", [
-            99,
-            "abc",
-            {
-              text: "hello from JS!",
-              sent: new Date(),
-            },
-          ]);
+          const result = await bridge.helloWorldAsync(99, "abc", {
+            text: "hello from JS!",
+            sent: new Date(),
+          });
           var endTime = performance.now();
           console.log(result, endTime - startTime + "milliseconds");
 
@@ -54,31 +57,13 @@ function App() {
       <button
         onClick={async () => {
           var startTime = performance.now();
-          const result = await bridge.runMethod(
-            "StartSendingMessagesAsync",
-            []
-          );
+          const result = await bridge.startSendingMessagesAsync();
           var endTime = performance.now();
           console.log(result, endTime - startTime + "milliseconds");
-
-          alert("Got result back: " + JSON.stringify(result, undefined, 2));
         }}
       >
         Start sending messages from C#
       </button>
-
-      {/* <button
-        onClick={async () => {
-          var startTime = performance.now();
-          const result = await bridge.speedTest();
-          var endTime = performance.now();
-          console.log(result, endTime - startTime + "milliseconds");
-
-          alert("Got result back: " + JSON.stringify(result, undefined, 2));
-        }}
-      >
-        Regular call (for speed testing)
-      </button> */}
     </div>
   );
 }
