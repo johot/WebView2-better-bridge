@@ -1,11 +1,3 @@
-interface AnyMethod {
-  // Keys can be strings, numbers, or symbols.
-  // If you know it to be strings only, you can also restrict it to that.
-  // For the value you can use any or unknown,
-  // with unknown being the more defensive approach.
-  [methodName: string | number | symbol]: any;
-}
-
 export function createBridge<
   T = Record<string, (...args: any[]) => Promise<any>>
 >(bridgeName: string) {
