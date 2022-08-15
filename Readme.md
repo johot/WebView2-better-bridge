@@ -6,6 +6,8 @@ Using WebView2 call C# methods (async and sync) with complex parameters and retu
 
 There currently is no NuGet and npm packages, instead copy the `WebView2BetterBridge\BetterBridge.cs` to your C# project and `web-ui\src\betterBridge.ts` to your frontend project.
 
+> Note: For this solution to work with async methods you need to be on WebView2 1.0.1293.44 or later.
+
 ## Usage
 
 The documentation here is just a very light overview, for full details check the sample projects.

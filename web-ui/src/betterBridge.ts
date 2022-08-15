@@ -19,13 +19,9 @@ class BetterBridge {
   constructor(bridgeName: string) {
     this.webViewBridge = (window as any).chrome.webview.hostObjects[bridgeName];
 
-    var startTime = performance.now();
-
     const availableMethods = (window as any).chrome.webview.hostObjects.sync[
       bridgeName
     ].GetMethods();
-
-    console.log(performance.now() - startTime + " it took...");
 
     availableMethods.forEach((methodName: string) => {
       const lowerCaseMethodName = lowercaseFirstLetter(methodName);
@@ -34,7 +30,10 @@ class BetterBridge {
         return this.runMethod(methodName, args);
       };
     });
+  }
 
+  // TODO: Need logic to clean this up when no handlers exist anymore, might cause leaks
+  private initMessageHandling = () => {
     (window as any).chrome.webview.addEventListener("message", (event: any) => {
       // This data will already be deserialized for us
       const eventData = event.data;
@@ -45,9 +44,16 @@ class BetterBridge {
         this.onMessage(type, data);
       }
     });
-  }
+  };
+
+  private messageHandlingInitialized = false;
 
   addMessageHandler = (messageHandler: MessageHandler) => {
+    if (!this.messageHandlingInitialized) {
+      this.initMessageHandling();
+      this.messageHandlingInitialized = true;
+    }
+
     this.messageHandlers.push(messageHandler);
   };
 
@@ -63,10 +69,6 @@ class BetterBridge {
     }
   };
 
-  private generateCallId(functionName: string): string {
-    return functionName + "_" + Math.random().toString(36).substr(2, 9);
-  }
-
   // Only works in WebView2 1.0.1293.44+
   private runMethod = async <TResult = any>(
     methodName: string,
@@ -80,68 +82,6 @@ class BetterBridge {
     );
 
     return JSON.parse(returnJson);
-  };
-
-  runMethodLegacyMode = async <TResult = any>(
-    methodName: string,
-    args: any[],
-    timeout = 60000
-  ): Promise<TResult> => {
-    const promise = new Promise<TResult>(async (resolve, reject) => {
-      const callId = this.generateCallId(methodName);
-
-      const messageHandler = (event: {
-        data: {
-          result: string;
-          callId: string;
-        };
-      }) => {
-        // Since this function gets called for every message we must see if it is "our" message otherwise ignore
-        if (event.data.callId === callId) {
-          (window as any).chrome.webview.removeEventListener(
-            "message",
-            messageHandler
-          );
-
-          // Remove timeout
-          clearTimeout(timeoutHandle);
-
-          resolve(event.data.result as unknown as TResult);
-        } else {
-          // This message was for someone else we keep waiting for our result (or until timeout hits)
-        }
-      };
-
-      const timeoutHandle = setTimeout(() => {
-        (window as any).chrome.webview.removeEventListener(
-          "message",
-          messageHandler
-        );
-
-        reject(`The function ${methodName} timed out`);
-      }, timeout);
-
-      (window as any).chrome.webview.addEventListener(
-        "message",
-        messageHandler
-      );
-
-      const argsJson = args.map((a) => JSON.stringify(a));
-
-      await this.webViewBridge.RunMethod(
-        methodName,
-        JSON.stringify(argsJson),
-        callId
-      );
-    });
-
-    return promise;
-  };
-
-  // How fast can we go? For debugging / testing only
-  speedTest = async () => {
-    const result = await this.webViewBridge.speedTest();
-    return result;
   };
 }
 
