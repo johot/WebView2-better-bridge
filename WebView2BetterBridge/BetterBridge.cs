@@ -28,6 +28,7 @@ namespace WebView2BetterBridge
 
         private JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
         {
+            ObjectCreationHandling = ObjectCreationHandling.Replace,
             ContractResolver = new DefaultContractResolver
             {
                 NamingStrategy = new CamelCaseNamingStrategy()
@@ -51,7 +52,7 @@ namespace WebView2BetterBridge
         {
             // We have stored each argument as json data in an array, the array is also encoded to a string
             // since webview can't invoke string[] array functions
-            var jsonDataArray = JsonConvert.DeserializeObject<string[]>(argsJson);
+            var jsonDataArray = JsonConvert.DeserializeObject<string[]>(argsJson, jsonSerializerSettings);
 
             var method = bridgeClassType.GetMethod(methodName);
             var parameters = bridgeClassType.GetMethod(methodName).GetParameters();
@@ -63,7 +64,7 @@ namespace WebView2BetterBridge
 
             for (int i = 0; i < typedArgs.Length; i++)
             {
-                var typedObj = JsonConvert.DeserializeObject(jsonDataArray[i], parameters[i].ParameterType);
+                var typedObj = JsonConvert.DeserializeObject(jsonDataArray[i], parameters[i].ParameterType, jsonSerializerSettings);
                 typedArgs[i] = typedObj;
             }
 
